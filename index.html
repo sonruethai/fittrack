@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>FitTrack 💪</title>
+<style>
+:root{
+  --bg:#0f0f1a;--surface:#1a1a2e;--card:#212138;--border:#2e2e50;
+  --purple:#7c6fd4;--purple-lt:#a89ee8;--purple-dim:rgba(124,111,212,0.15);
+  --teal:#3eb89a;--teal-lt:#6dd4bc;--teal-dim:rgba(62,184,154,0.12);
+  --amber:#f0a500;--amber-lt:#f5c040;--amber-dim:rgba(240,165,0,0.12);
+  --coral:#e8593c;--coral-dim:rgba(232,89,60,0.12);
+  --text:#e8e6f0;--text-m:#8884aa;--text-d:#4a4870;
+  --r:16px;--rs:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Text',sans-serif;font-size:16px}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:500px;margin:0 auto}
+header{padding:52px 20px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start}
+header h1{font-size:22px;font-weight:700}
+header p{font-size:12px;color:var(--text-m);margin-top:2px}
+#today-badge{display:inline-block;background:var(--purple);color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-top:6px}
+#streak-badge{background:var(--amber-dim);border:1px solid var(--amber);border-radius:12px;padding:6px 12px;text-align:center}
+#streak-num{font-size:20px;font-weight:700;color:var(--amber-lt);line-height:1}
+#streak-badge .lbl{font-size:10px;color:var(--amber);margin-top:1px}
+nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px);flex-shrink:0}
+nav button{flex:1;background:none;border:none;color:var(--text-d);padding:9px 2px 11px;font-size:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .2s}
+nav button svg{width:21px;height:21px;stroke-width:1.8}
+nav button.active{color:var(--purple-lt)}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:18px 16px 28px}.page.active{display:block}
+.section-title{font-size:17px;font-weight:600;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-label{font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--text-m);text-transform:uppercase;margin-bottom:10px}
+.chip-group{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:14px;cursor:pointer;transition:all .15s;color:var(--text-m);white-space:nowrap;user-select:none}
+.chip.sel{border-color:var(--teal);color:var(--teal-lt);background:var(--teal-dim)}
+.mood-row{display:flex;gap:6px}
+.mood-btn{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:9px 2px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+.mood-btn .em{font-size:20px;display:block}.mood-btn .lb{font-size:10px;color:var(--text-d);margin-top:3px;display:block}
+.mood-btn.sel{border-color:var(--amber);background:var(--amber-dim)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:var(--text-m);margin-bottom:5px}
+.field input,.field textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:16px;padding:11px 13px;outline:none;transition:border-color .2s;font-family:inherit;-webkit-appearance:none}
+.field input:focus,.field textarea:focus{border-color:var(--purple)}
+.field textarea{resize:none;height:68px}
+.row2{display:flex;gap:10px}.row2 .field{flex:1;margin:0}
+.unit{background:var(--border);padding:11px 13px;border-radius:var(--rs);font-size:14px;color:var(--text-m);white-space:nowrap;align-self:flex-end}
+.water-glasses{display:flex;gap:6px;flex-wrap:wrap}
+.glass{width:36px;height:36px;background:var(--bg);border:2px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;user-select:none}
+.glass.filled{border-color:var(--teal);background:var(--teal-dim)}
+.water-count{font-size:13px;color:var(--text-m);margin-top:8px}
+.btn-save{width:100%;background:var(--purple);color:#fff;border:none;border-radius:var(--r);padding:15px;font-size:17px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:6px}
+.btn-save:active{opacity:.8}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--teal);color:#fff;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:199;white-space:nowrap}
+#toast.show{opacity:1}
+/* WORKOUT */
+.day-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
+.day-tabs::-webkit-scrollbar{display:none}
+.day-tab{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--text-m);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;font-family:inherit}
+.day-tab.active{border-color:var(--purple);color:var(--purple-lt);background:var(--purple-dim)}
+.workout-panel{display:none}.workout-panel.active{display:block}
+.exercise-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.ex-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.ex-name{font-size:15px;font-weight:600}
+.ex-badge{font-size:11px;padding:3px 10px;border-radius:12px;background:var(--purple-dim);color:var(--purple-lt);border:1px solid var(--purple);white-space:nowrap;flex-shrink:0;margin-left:8px}
+.ex-badge.cardio{background:var(--teal-dim);color:var(--teal-lt);border-color:var(--teal)}
+.ex-badge.stretch{background:var(--amber-dim);color:var(--amber-lt);border-color:var(--amber)}
+.ex-tip{font-size:13px;color:var(--text-m);line-height:1.6;margin-bottom:10px}
+.ex-steps{list-style:none;padding:0}
+.ex-steps li{font-size:13px;color:var(--text-m);padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px}
+.ex-steps li:last-child{border:none}
+.ex-steps li span{color:var(--purple-lt);font-weight:600;flex-shrink:0;width:18px}
+.rest-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;text-align:center}
+.rest-icon{font-size:48px;margin-bottom:10px}
+.rest-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.rest-text{font-size:14px;color:var(--text-m);line-height:1.7}
+/* FOOD */
+.meal-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.meal-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.meal-title{font-size:15px;font-weight:600}
+.meal-time{font-size:12px;color:var(--text-m)}
+.food-option{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px}
+.food-name{font-size:14px;font-weight:500}
+.food-cal{font-size:12px;color:var(--amber);margin-top:3px}
+.food-note{font-size:12px;color:var(--text-m);margin-top:3px;line-height:1.5}
+/* HISTORY */
+.filter-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-btn{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:13px;color:var(--text-m);cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit}
+.filter-btn.active{border-color:var(--purple);color:var(--purple-lt)}
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:13px 15px;margin-bottom:9px;cursor:pointer}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.history-date{font-size:14px;font-weight:600}
+.history-tags{display:flex;flex-wrap:wrap;gap:5px}
+.htag{font-size:11px;padding:3px 9px;border-radius:12px}
+.htag.w{background:var(--purple-dim);color:var(--purple-lt)}
+.htag.wt{background:var(--amber-dim);color:var(--amber-lt)}
+.htag.h2o{background:rgba(56,180,255,0.15);color:#7dd4ff}
+.history-note{font-size:13px;color:var(--text-m);margin-top:7px;border-top:1px solid var(--border);padding-top:7px}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-d)}
+.empty-state .icon{font-size:44px;margin-bottom:10px}
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:14px}
+.stat-box .val{font-size:26px;font-weight:700}
+.stat-box .lbl{font-size:11px;color:var(--text-m);margin-top:3px}
+.stat-box.purple .val{color:var(--purple-lt)}
+.stat-box.teal .val{color:var(--teal-lt)}
+.stat-box.amber .val{color:var(--amber-lt)}
+.stat-box.coral .val{color:#f0806a}
+.streak-grid{display:flex;flex-wrap:wrap;gap:4px}
+.streak-dot{width:28px;height:28px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-d)}
+.streak-dot.worked{background:var(--purple-dim);border-color:var(--purple);color:var(--purple-lt)}
+.streak-dot.rested{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+#weight-chart{width:100%;height:130px}
+.tip-card{background:linear-gradient(135deg,rgba(124,111,212,.15),rgba(62,184,154,.1));border:1px solid rgba(124,111,212,.3);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.tip-card .tt{font-size:12px;font-weight:600;color:var(--purple-lt);margin-bottom:5px}
+.tip-card .tx{font-size:14px;color:var(--text-m);line-height:1.6}
+/* MODAL */
+#modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;align-items:flex-end}
+#modal-bg.open{display:flex}
+#modal{background:var(--surface);border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-height:80vh;overflow-y:auto}
+#modal h3{font-size:18px;font-weight:700;margin-bottom:14px}
+.mrow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.mrow:last-child{border:none}
+.mrow .k{color:var(--text-m)}.mrow .v{font-weight:500;text-align:right;max-width:60%}
+.btn-close{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:13px;border-radius:var(--rs);font-size:15px;margin-top:14px;cursor:pointer;font-family:inherit}
+.sync-status{font-size:12px;color:var(--text-d);text-align:center;padding:8px;margin-top:4px}
+.sync-status.ok{color:var(--teal)}
+.sync-status.err{color:var(--coral)}
+@media(min-width:500px){#app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="header-row">
+    <div>
+      <h1>FitTrack 💪</h1>
+      <p>ติดตามสุขภาพและออกกำลังกาย</p>
+      <span id="today-badge"></span>
+    </div>
+    <div id="streak-badge">
+      <div id="streak-num">0</div>
+      <div class="lbl">🔥 streak</div>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- LOG -->
+<div class="page active" id="page-log">
+  <p class="section-title">บันทึกวันนี้</p>
+  <div class="card">
+    <div class="card-label">ออกกำลังกายวันนี้</div>
+    <div class="chip-group" id="workout-chips">
+      <div class="chip sel" data-val="อังคาร — Upper body">อังคาร (Upper)</div>
+      <div class="chip" data-val="พุธ — Lower body">พุธ (Lower)</div>
+      <div class="chip" data-val="พฤหัส — Full body">พฤหัส (Full)</div>
+      <div class="chip" data-val="เสาร์ — คาร์ดิโอ">เสาร์ (คาร์ดิโอ)</div>
+      <div class="chip" data-val="rest">วันพัก</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">น้ำหนัก (กก.)</div>
+    <div class="row2" style="align-items:flex-end">
+      <div class="field" style="margin:0"><input type="number" id="weight-input" placeholder="เช่น 108.5" step="0.1" inputmode="decimal"></div>
+      <div class="unit">กก.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">💧 น้ำที่ดื่มวันนี้</div>
+    <div class="water-glasses" id="water-glasses">
+      <div class="glass" data-g="1">💧</div><div class="glass" data-g="2">💧</div>
+      <div class="glass" data-g="3">💧</div><div class="glass" data-g="4">💧</div>
+      <div class="glass" data-g="5">💧</div><div class="glass" data-g="6">💧</div>
+      <div class="glass" data-g="7">💧</div><div class="glass" data-g="8">💧</div>
+    </div>
+    <p class="water-count" id="water-count">0 / 8 แก้ว</p>
+  </div>
+  <div class="card">
+    <div class="card-label">แคลอรี่</div>
+    <div class="row2">
+      <div class="field"><label>กินเข้าไป</label><input type="number" id="cal-eaten" placeholder="kcal" inputmode="numeric"></div>
+      <div class="field"><label>เผาผลาญ</label><input type="number" id="cal-burned" placeholder="kcal" inputmode="numeric"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">ความรู้สึกวันนี้</div>
+    <div class="mood-row" id="mood-row">
+      <div class="mood-btn sel" data-val="😫 เหนื่อยมาก"><span class="em">😫</span><span class="lb">เหนื่อย</span></div>
+      <div class="mood-btn" data-val="😕 ไม่ค่อยดี"><span class="em">😕</span><span class="lb">ไม่ดี</span></div>
+      <div class="mood-btn" data-val="😐 ปกติ"><span class="em">😐</span><span class="lb">ปกติ</span></div>
+      <div class="mood-btn" data-val="🙂 ดี"><span class="em">🙂</span><span class="lb">ดี</span></div>
+      <div class="mood-btn" data-val="😄 ดีมาก"><span class="em">😄</span><span class="lb">ดีมาก</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">อาหารวันนี้</div>
+    <div class="chip-group" id="food-chips">
+      <div class="chip" data-val="✅ คุมได้ดี">✅ คุมได้ดี</div>
+      <div class="chip" data-val="👌 โอเค">👌 โอเค</div>
+      <div class="chip" data-val="😅 หลุดนิดหน่อย">😅 หลุดนิด</div>
+      <div class="chip" data-val="😬 หลุดหนัก">😬 หลุดหนัก</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">โน้ต</div>
+    <div class="field" style="margin:0"><textarea id="note-input" placeholder="เช่น วันนี้รู้สึกดี ออกกำลังกายได้ครบทุกท่า..."></textarea></div>
+  </div>
+  <button class="btn-save" id="save-btn" onclick="saveLog()">บันทึกวันนี้ ✓</button>
+  <div class="sync-status" id="sync-status"></div>
+</div>
+
+<!-- WORKOUT -->
+<div class="page" id="page-workout">
+  <p class="section-title">ตารางออกกำลังกาย</p>
+  <div class="day-tabs">
+    <button class="day-tab active" onclick="switchDay('tue',this)">อังคาร</button>
+    <button class="day-tab" onclick="switchDay('wed',this)">พุธ</button>
+    <button class="day-tab" onclick="switchDay('thu',this)">พฤหัส</button>
+    <button class="day-tab" onclick="switchDay('sat',this)">เสาร์</button>
+    <button class="day-tab" onclick="switchDay('rest',this)">วันพัก</button>
+  </div>
+
+  <div class="workout-panel active" id="panel-tue">
+    <div class="card" style="background:var(--purple-dim);border-color:var(--purple)">
+      <div style="font-size:13px;color:var(--purple-lt);font-weight:600">อังคาร — Upper body + คาร์ดิโอ</div>
+      <div style="font-size:12px;color:var(--text-m);margin-top:4px">~55 นาที • หน้าอก หลัง ไหล่</div>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🚶 เดินวอร์มอัพ</span><span class="ex-badge cardio">10 นาที</span></div>
+      <p class="ex-tip">เริ่มช้าๆ ค่อยเพิ่มความเร็ว ให้ร่างกายตื่นตัวก่อน</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>ตั้งความเร็วลู่วิ่ง 4–5 กม./ชม.</li>
+        <li><span>2.</span>เดิน 10 นาที หายใจสม่ำเสมอ</li>
+        <li><span>3.</span>ช่วงท้ายค่อยเพิ่มเป็น 5.5 กม./ชม. 2 นาที</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏋️ Chest Press Machine</span><span class="ex-badge">3×12</span></div>
+      <p class="ex-tip">เริ่มน้ำหนักเบาก่อน รูปฟอร์มถูกต้องสำคัญกว่าน้ำหนักมาก</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>นั่งให้หลังแนบพนัก ปรับที่นั่งให้มือจับอยู่ระดับหน้าอก</li>
+        <li><span>2.</span>จับที่จับกว้างกว่าไหล่เล็กน้อย</li>
+        <li><span>3.</span>ดันออกไปตรงๆ หายใจออกขณะดัน อย่าล็อกข้อศอก</li>
+        <li><span>4.</span>ค่อยๆ ดึงกลับ ทำช้าๆ 2 วินาทีไป 3 วินาทีกลับ</li>
+        <li><span>5.</span>พัก 60–90 วินาทีระหว่างเซต</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏋️ Lat Pulldown</span><span class="ex-badge">3×12</span></div>
+      <p class="ex-tip">เน้นกล้ามเนื้อหลัง ไม่ใช่แขน ให้รู้สึกว่าหลังดึง</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>นั่ง เข่าอยู่ใต้แผ่นล็อก จับบาร์กว้างกว่าไหล่</li>
+        <li><span>2.</span>เอนหลังเล็กน้อย ~15 องศา อกยื่นขึ้น</li>
+        <li><span>3.</span>ดึงบาร์ลงมาที่คอ บีบกล้ามหลังส่วนบน</li>
+        <li><span>4.</span>ค่อยๆ ปล่อยขึ้น ควบคุมทุกจังหวะ</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏋️ Shoulder Press Machine</span><span class="ex-badge">3×12</span></div>
+      <p class="ex-tip">กดบาร์เหนือหัว เน้นกล้ามเนื้อไหล่</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>นั่งหลังตรง ปรับที่นั่งให้มือจับอยู่ระดับไหล่</li>
+        <li><span>2.</span>ดันขึ้นตรงๆ แต่อย่าล็อกข้อศอกสุด</li>
+        <li><span>3.</span>ลดลงช้าๆ จนมือกลับระดับไหล่</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🧘 ยืดกล้ามเนื้อ</span><span class="ex-badge stretch">10 นาที</span></div>
+      <ul class="ex-steps">
+        <li><span>1.</span>ยืดหน้าอก: มือสองข้างไขว้หลัง ดันอกออก 30 วิ</li>
+        <li><span>2.</span>ยืดไหล่: ดึงแขนข้ามหน้าอก ข้างละ 30 วิ</li>
+        <li><span>3.</span>ยืดหลัง: ก้มตัวไปข้างหน้า มือแตะพื้น 30 วิ</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="workout-panel" id="panel-wed">
+    <div class="card" style="background:var(--teal-dim);border-color:var(--teal)">
+      <div style="font-size:13px;color:var(--teal-lt);font-weight:600">พุธ — Lower body + คาร์ดิโอ</div>
+      <div style="font-size:12px;color:var(--text-m);margin-top:4px">~55 นาที • ขา สะโพก น่อง</div>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🚲 จักรยานนั่ง วอร์มอัพ</span><span class="ex-badge cardio">10 นาที</span></div>
+      <p class="ex-tip">ดีกว่าลู่วิ่งในวัน Lower body เพราะขาไม่ล้าก่อน</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>ตั้ง resistance ต่ำ (2–3)</li>
+        <li><span>2.</span>ปั่น 10 นาที รักษา rpm ประมาณ 70–80</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏋️ Leg Press Machine</span><span class="ex-badge">3×12</span></div>
+      <p class="ex-tip">เน้นกล้ามต้นขาหน้าและสะโพก</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>นั่งหลังแนบพนัก วางเท้ากว้างเท่าไหล่กลางแผ่น</li>
+        <li><span>2.</span>ดันออก อย่าล็อกเข่าสุด</li>
+        <li><span>3.</span>งอเข่าลงมา ~90 องศา แต่ไม่ถึงก้นกบ</li>
+        <li><span>4.</span>ดันกลับช้าๆ ควบคุมทุกจังหวะ</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏋️ Leg Curl Machine</span><span class="ex-badge">3×12</span></div>
+      <p class="ex-tip">เน้นกล้ามต้นขาหลัง (hamstring)</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>นอนคว่ำ ปลายเท้าอยู่ใต้ปุ่มกด</li>
+        <li><span>2.</span>งอเข่าดึงส้นเท้าเข้าหาก้น</li>
+        <li><span>3.</span>ค่อยๆ ปล่อยขาลง อย่าปล่อยตกฮวบ</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏋️ Calf Raise</span><span class="ex-badge">3×15</span></div>
+      <ul class="ex-steps">
+        <li><span>1.</span>ยืนปลายเท้าบนขอบ ส้นเท้าห้อยลง</li>
+        <li><span>2.</span>ยกส้นเท้าขึ้นสูงที่สุด กดค้าง 1 วิ</li>
+        <li><span>3.</span>ลดส้นเท้าลงช้าๆ ต่ำกว่าขอบเล็กน้อย</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🧘 ยืดกล้ามเนื้อขา</span><span class="ex-badge stretch">10 นาที</span></div>
+      <ul class="ex-steps">
+        <li><span>1.</span>ต้นขาหน้า: ยืนยกเท้าไปข้างหลัง จับส้นเท้า 30 วิ</li>
+        <li><span>2.</span>ต้นขาหลัง: นั่งเหยียดขา ก้มตัวแตะปลายเท้า 30 วิ</li>
+        <li><span>3.</span>น่อง: ยืนเท้าชิดผนัง กดส้นเท้า 30 วิ</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="workout-panel" id="panel-thu">
+    <div class="card" style="background:var(--purple-dim);border-color:var(--purple)">
+      <div style="font-size:13px;color:var(--purple-lt);font-weight:600">พฤหัส — Full body (เบา) + คาร์ดิโอ</div>
+      <div style="font-size:12px;color:var(--text-m);margin-top:4px">~50 นาที • น้ำหนักเบาลง 20–30% จากวันปกติ</div>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🏃 Elliptical (วงรี)</span><span class="ex-badge cardio">15 นาที</span></div>
+      <p class="ex-tip">กระทบข้อต่อน้อยกว่าลู่วิ่ง เหมาะวันที่ร่างกายยังฟื้นตัว</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>ตั้ง resistance ปานกลาง</li>
+        <li><span>2.</span>ออกแรงทั้งแขนและขา เพื่อเบิร์นแคลได้มากขึ้น</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🔄 Full Body Circuit</span><span class="ex-badge">2×15 (เบา)</span></div>
+      <ul class="ex-steps">
+        <li><span>1.</span>Chest press น้ำหนักเบา 15 ครั้ง</li>
+        <li><span>2.</span>Leg press น้ำหนักเบา 15 ครั้ง</li>
+        <li><span>3.</span>Lat pulldown น้ำหนักเบา 15 ครั้ง</li>
+        <li><span>4.</span>Plank ค้าง 20–30 วินาที</li>
+        <li><span>5.</span>พัก 90 วิ แล้วทำรอบ 2</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🧘 Plank</span><span class="ex-badge">3×20 วิ</span></div>
+      <p class="ex-tip">แกนกลางลำตัวแข็งแรงช่วยให้ท่าอื่นๆ ดีขึ้นด้วย</p>
+      <ul class="ex-steps">
+        <li><span>1.</span>คว่ำหน้า พักบนแขนท่อนล่าง ลำตัวตรง</li>
+        <li><span>2.</span>อย่าให้สะโพกยกสูงหรือห้อยต่ำ</li>
+        <li><span>3.</span>กดท้องและก้นเบาๆ ตลอดเวลา</li>
+        <li><span>4.</span>ถ้ายังไม่ไหว เริ่มจาก 10 วิก่อนได้เลย</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="workout-panel" id="panel-sat">
+    <div class="card" style="background:var(--teal-dim);border-color:var(--teal)">
+      <div style="font-size:13px;color:var(--teal-lt);font-weight:600">เสาร์ — คาร์ดิโอ + ยืดกล้ามเนื้อ</div>
+      <div style="font-size:12px;color:var(--text-m);margin-top:4px">~45 นาที • ไม่ต้องเล่นเวท พักกล้ามก่อนสัปดาห์ใหม่</div>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">❤️ คาร์ดิโอ</span><span class="ex-badge cardio">30 นาที</span></div>
+      <p class="ex-tip">เลือกเครื่องที่ชอบที่สุด เป้า heart rate 116–135 bpm</p>
+      <ul class="ex-steps">
+        <li><span>A.</span>ลู่วิ่ง — เดินเร็ว 5.5–6 กม./ชม.</li>
+        <li><span>B.</span>จักรยาน — resistance ปานกลาง rpm 70–80</li>
+        <li><span>C.</span>วงรี — ออกแรงทั้งแขนและขา</li>
+      </ul>
+    </div>
+    <div class="exercise-card">
+      <div class="ex-header"><span class="ex-name">🧘 ยืดกล้ามเนื้อทั่วร่าง</span><span class="ex-badge stretch">15 นาที</span></div>
+      <ul class="ex-steps">
+        <li><span>1.</span>คอ: ก้มหน้า ซ้ายขวา ทิศละ 20 วิ</li>
+        <li><span>2.</span>ไหล่: ดึงแขนข้ามหน้าอก ข้างละ 30 วิ</li>
+        <li><span>3.</span>หน้าอก: มือไขว้หลัง ดันอก 30 วิ</li>
+        <li><span>4.</span>หลัง: นอนหงาย ดึงเข่าเข้าหาอก 30 วิ</li>
+        <li><span>5.</span>ต้นขาหน้า: ยืนงอเข่า จับเท้า ข้างละ 30 วิ</li>
+        <li><span>6.</span>ต้นขาหลัง: นั่งเหยียดขา ก้มตัว 30 วิ</li>
+        <li><span>7.</span>น่อง: ยืนเท้าชิดผนัง กดส้นเท้า 30 วิ</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="workout-panel" id="panel-rest">
+    <div class="rest-card">
+      <div class="rest-icon">😴</div>
+      <div class="rest-title">วันพัก</div>
+      <div class="rest-text">จันทร์ ศุกร์ อาทิตย์ คือวันพักค่ะ<br><br>ร่างกายสร้างกล้ามเนื้อและเผาผลาญไขมันในช่วงพักฟื้น ไม่ใช่ตอนออกกำลังกาย วันพักจึงสำคัญพอๆ กับวันออกกำลังกาย<br><br>สิ่งที่ทำได้: เดินเล่น ยืดเบาๆ นวด อาบน้ำอุ่น</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOD -->
+<div class="page" id="page-food">
+  <p class="section-title">เมนูอาหารตามแผน</p>
+  <div class="tip-card">
+    <div class="tt">🎯 เป้าหมายแคลอรี่</div>
+    <div class="tx">1,600–1,700 kcal/วัน • โปรตีน 100–120 g • คาร์บ 150–180 g</div>
+  </div>
+  <div style="margin-bottom:16px">
+    <div class="meal-header">
+      <div class="meal-icon" style="background:var(--amber-dim)">🌅</div>
+      <div><div class="meal-title">มื้อเช้า</div><div class="meal-time">07:00–08:00 น. • 350–400 kcal</div></div>
+    </div>
+    <div class="food-option"><div class="food-name">ข้าวต้มไก่ + ไข่ต้ม 1 ฟอง</div><div class="food-cal">~350 kcal • โปรตีน 28 g</div><div class="food-note">ขอข้าวน้อย เพิ่มพริกไทยดำ ขิง</div></div>
+    <div class="food-option"><div class="food-name">โยเกิร์ตกรีก + กล้วยหอม 1 ลูก</div><div class="food-cal">~320 kcal • โปรตีน 18 g</div><div class="food-note">เลือก plain ไม่มีน้ำตาล</div></div>
+    <div class="food-option"><div class="food-name">ไข่ดาว 2 ฟอง + ขนมปังโฮลวีต 1 แผ่น</div><div class="food-cal">~380 kcal • โปรตีน 20 g</div></div>
+  </div>
+  <div style="margin-bottom:16px">
+    <div class="meal-header">
+      <div class="meal-icon" style="background:var(--teal-dim)">🍌</div>
+      <div><div class="meal-title">Pre-workout Snack</div><div class="meal-time">17:00–17:30 น. • 150–200 kcal</div></div>
+    </div>
+    <div class="food-option"><div class="food-name">กล้วยหอม 1–2 ลูก</div><div class="food-cal">~180 kcal</div><div class="food-note">พลังงานเร็ว ซื้อจากร้านสะดวกซื้อได้เลย</div></div>
+    <div class="food-option"><div class="food-name">โยเกิร์ตกรีกแบบพกพา</div><div class="food-cal">~120 kcal • โปรตีน 15 g</div><div class="food-note">ย่อยง่าย ไม่จุก เหมาะก่อนออกกำลังกาย</div></div>
+  </div>
+  <div style="margin-bottom:16px">
+    <div class="meal-header">
+      <div class="meal-icon" style="background:rgba(76,175,128,0.12)">☀️</div>
+      <div><div class="meal-title">มื้อกลางวัน</div><div class="meal-time">12:00–13:00 น. • มื้อใหญ่ 500–600 kcal</div></div>
+    </div>
+    <div class="food-option"><div class="food-name">ข้าวกะเพราไก่ + ไข่ดาว</div><div class="food-cal">~550 kcal • โปรตีน 35 g</div><div class="food-note">ขอข้าวน้อย เพิ่มผัก บอกไม่ใส่น้ำมันมาก</div></div>
+    <div class="food-option"><div class="food-name">ส้มตำ + ไก่ย่าง + ข้าวเหนียว ½ ก้อน</div><div class="food-cal">~480 kcal • โปรตีน 40 g</div><div class="food-note">ขอส้มตำไม่ใส่น้ำตาล</div></div>
+    <div class="food-option"><div class="food-name">ก๋วยเตี๋ยวน้ำ + ไข่ต้ม</div><div class="food-cal">~450 kcal • โปรตีน 30 g</div><div class="food-note">เลือกน้ำใส เพิ่มผักให้เยอะ</div></div>
+  </div>
+  <div style="margin-bottom:16px">
+    <div class="meal-header">
+      <div class="meal-icon" style="background:var(--purple-dim)">🌙</div>
+      <div><div class="meal-title">มื้อเย็น (หลังออกกำลังกาย)</div><div class="meal-time">19:30–20:30 น. • 400–450 kcal</div></div>
+    </div>
+    <div class="food-option"><div class="food-name">ข้าวต้มปลา/ไก่ + ผัดผักรวม</div><div class="food-cal">~380 kcal • โปรตีน 30 g</div><div class="food-note">มื้อเบา ย่อยง่าย เหมาะกินหลังออกกำลังกาย</div></div>
+    <div class="food-option"><div class="food-name">อกไก่อบ + ผักลวก + ข้าวกล้อง ½ ถ้วย</div><div class="food-cal">~420 kcal • โปรตีน 45 g</div><div class="food-note">โปรตีนสูงที่สุด เหมาะวันออกกำลังกายหนัก</div></div>
+  </div>
+  <div class="card" style="background:var(--coral-dim);border-color:var(--coral)">
+    <div class="card-label" style="color:#f0806a">🍫 ของหวาน — ไม่ต้องเลิก!</div>
+    <div style="font-size:14px;color:var(--text-m);line-height:1.7">อนุญาตตัวเอง <strong style="color:var(--text)">2–3 ครั้ง/สัปดาห์</strong> เช่น ช็อกโกแลตดาร์ก 2 แถว ไอศกรีม 1 ลูก<br><br>การห้ามตัวเองเด็ดขาด คือต้นเหตุของการกินรัวๆ หลังหลุด 💡</div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="page" id="page-history">
+  <p class="section-title">ประวัติย้อนหลัง</p>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterHistory('all',this)">ทั้งหมด</button>
+    <button class="filter-btn" onclick="filterHistory('workout',this)">ออกกำลังกาย</button>
+    <button class="filter-btn" onclick="filterHistory('weight',this)">น้ำหนัก</button>
+  </div>
+  <div id="history-list"><div class="empty-state"><div class="icon">⏳</div><p>กำลังโหลดข้อมูล...</p></div></div>
+</div>
+
+<!-- STATS -->
+<div class="page" id="page-stats">
+  <p class="section-title">สรุปความก้าวหน้า</p>
+  <div class="stat-grid">
+    <div class="stat-box purple"><div class="val" id="stat-days">0</div><div class="lbl">วันที่บันทึกแล้ว</div></div>
+    <div class="stat-box teal"><div class="val" id="stat-workouts">0</div><div class="lbl">ครั้งออกกำลังกาย</div></div>
+    <div class="stat-box amber"><div class="val" id="stat-start">—</div><div class="lbl">น้ำหนักเริ่มต้น (กก.)</div></div>
+    <div class="stat-box coral"><div class="val" id="stat-diff">—</div><div class="lbl">ลดไปแล้ว (กก.)</div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">กราฟน้ำหนัก</div>
+    <canvas id="weight-chart"></canvas>
+    <p id="chart-empty" style="text-align:center;color:var(--text-d);font-size:13px;padding:20px 0;display:none">บันทึกน้ำหนักอย่างน้อย 2 วันเพื่อดูกราฟ</p>
+  </div>
+  <div class="card">
+    <div class="card-label">🔥 Streak 30 วันล่าสุด</div>
+    <div class="streak-grid" id="streak-grid"></div>
+    <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--text-m)">
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--purple-dim);border:1px solid var(--purple);border-radius:2px;margin-right:4px;vertical-align:middle"></span>ออกกำลังกาย</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:2px;margin-right:4px;vertical-align:middle"></span>วันพัก</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">📋 เป้าหมาย</div>
+    <div style="font-size:14px;line-height:1.9;color:var(--text-m)">
+      🎯 เป้าหมาย: <strong style="color:var(--text)">ลดน้ำหนักยั่งยืน ไม่โยโย่</strong><br>
+      📅 ออกกำลังกาย: <strong style="color:var(--text)">อังคาร พุธ พฤหัส เสาร์</strong><br>
+      🍽️ แคล/วัน: <strong style="color:var(--text)">1,600–1,700 kcal</strong><br>
+      💧 น้ำ/วัน: <strong style="color:var(--text)">8 แก้ว (2 ลิตร)</strong><br>
+      ⚖️ น้ำหนักเริ่มต้น: <strong style="color:var(--text)">109 กก. • สูง 157 ซม.</strong>
+    </div>
+  </div>
+  <div class="tip-card">
+    <div class="tt">💡 เคล็ดลับวันนี้</div>
+    <div class="tx" id="daily-tip"></div>
+  </div>
+</div>
+</main>
+
+<nav>
+  <button class="active" onclick="showPage('log',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>บันทึก
+  </button>
+  <button onclick="showPage('workout',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3"/></svg>ท่าออกกำลัง
+  </button>
+  <button onclick="showPage('food',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>เมนู
+  </button>
+  <button onclick="showPage('history',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>ประวัติ
+  </button>
+  <button onclick="showPage('stats',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>สรุป
+  </button>
+</nav>
+</div>
+
+<div id="toast"></div>
+<div id="modal-bg" onclick="closeModal()">
+  <div id="modal" onclick="event.stopPropagation()">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+    <button class="btn-close" onclick="closeModal()">ปิด</button>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzsi7N-vRzkyNjtlFDv017il4JNmYkCThkoGseFb1_TSwh0o1GcBN-4hVWLZ5l-oihqcQ/exec';
+const TIPS = ['อย่าอดอาหาร ให้ลดทีละน้อย ร่างกายจะปรับตัวได้ดีกว่า','โปรตีนช่วยลดความหิวและรักษากล้ามเนื้อขณะลดน้ำหนัก','ดื่มน้ำก่อนมื้ออาหาร 30 นาที ช่วยลดปริมาณที่กินได้','หลุดกินของหวานไม่เป็นไร วันถัดไปค่อยกลับมาปกติ','นอนหลับให้พอ 7–8 ชั่วโมง ส่งผลต่อฮอร์โมนความหิวโดยตรง','ชั่งน้ำหนักตอนเช้าหลังเข้าห้องน้ำให้ผลแม่นที่สุด','น้ำหนักขึ้น-ลง 1–2 กก./วัน เป็นเรื่องปกติ','เพิ่มผักในทุกมื้อ อิ่มนานโดยไม่เพิ่มแคลมาก','ออกกำลังกายสม่ำเสมอดีกว่าออกหนักแล้วหยุด','ให้รางวัลตัวเองที่ไม่ใช่อาหาร เช่น ซื้อเสื้อผ้าใหม่'];
+
+let selWorkout='อังคาร — Upper body', selMood='😫 เหนื่อยมาก', selFood='', waterCount=0;
+let allLogs = [];
+
+// Cache in localStorage for offline
+function cacheGet(){try{return JSON.parse(localStorage.getItem('fitcache')||'[]')}catch{return[]}}
+function cacheSet(d){localStorage.setItem('fitcache',JSON.stringify(d))}
+
+function todayStr(){return new Date().toISOString().split('T')[0]}
+function fmtDate(s){
+  const d=new Date(s+'T00:00:00');
+  const D=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+  const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return D[d.getDay()]+' '+d.getDate()+' '+M[d.getMonth()]+' '+(d.getFullYear()+543)
+}
+
+// Chips
+document.querySelectorAll('#workout-chips .chip').forEach(c=>{
+  c.onclick=()=>{document.querySelectorAll('#workout-chips .chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');selWorkout=c.dataset.val}
+});
+document.querySelectorAll('#food-chips .chip').forEach(c=>{
+  c.onclick=()=>{const on=!c.classList.contains('sel');document.querySelectorAll('#food-chips .chip').forEach(x=>x.classList.remove('sel'));if(on){c.classList.add('sel');selFood=c.dataset.val}else selFood=''}
+});
+document.querySelectorAll('#mood-row .mood-btn').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('#mood-row .mood-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');selMood=b.dataset.val}
+});
+document.querySelectorAll('.glass').forEach(g=>{
+  g.onclick=()=>{
+    const n=+g.dataset.g;
+    waterCount=waterCount===n?n-1:n;
+    document.querySelectorAll('.glass').forEach(x=>x.classList.toggle('filled',+x.dataset.g<=waterCount));
+    document.getElementById('water-count').textContent=waterCount+' / 8 แก้ว';
+  }
+});
+
+async function saveLog(){
+  const btn=document.getElementById('save-btn');
+  const status=document.getElementById('sync-status');
+  btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  status.textContent=''; status.className='sync-status';
+
+  const log={
+    date:todayStr(), workout:selWorkout, mood:selMood, food:selFood,
+    weight:parseFloat(document.getElementById('weight-input').value)||'',
+    water:waterCount,
+    cal_eaten:parseInt(document.getElementById('cal-eaten').value)||'',
+    cal_burned:parseInt(document.getElementById('cal-burned').value)||'',
+    note:document.getElementById('note-input').value.trim()
+  };
+
+  try {
+    const res = await fetch(API, {method:'POST', body:JSON.stringify(log)});
+    const json = await res.json();
+    if(json.status==='ok'){
+      showToast('บันทึกลง Google Sheets แล้ว ✓');
+      status.textContent='✓ ซิงค์ข้อมูลแล้ว';
+      status.className='sync-status ok';
+      // update cache
+      const cache=cacheGet();
+      const idx=cache.findIndex(l=>l.date===log.date);
+      if(idx>=0)cache[idx]=log;else cache.unshift(log);
+      cacheSet(cache); allLogs=cache;
+      updateStreak();
+      // reset
+      document.getElementById('weight-input').value='';
+      document.getElementById('cal-eaten').value='';
+      document.getElementById('cal-burned').value='';
+      document.getElementById('note-input').value='';
+    } else {
+      throw new Error(json.message);
+    }
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด ลองใหม่อีกครั้ง');
+    status.textContent='✗ บันทึกไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ';
+    status.className='sync-status err';
+  }
+  btn.disabled=false; btn.textContent='บันทึกวันนี้ ✓';
+}
+
+async function loadLogs(){
+  // show cache first
+  allLogs = cacheGet();
+  renderHistory();
+  try {
+    const res = await fetch(API+'?t='+Date.now());
+    const json = await res.json();
+    if(json.status==='ok' && json.data){
+      allLogs = json.data.reverse();
+      cacheSet(allLogs);
+      renderHistory();
+      updateStreak();
+    }
+  } catch(e){ /* use cache */ }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500)
+}
+
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='history'){loadLogs()}
+  if(name==='stats'){renderStats()}
+}
+
+function switchDay(day,btn){
+  document.querySelectorAll('.day-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.workout-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+day).classList.add('active');
+}
+
+function filterHistory(f,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderHistory(f);
+}
+
+function renderHistory(f='all'){
+  let logs=[...allLogs];
+  if(f==='workout')logs=logs.filter(l=>l.workout&&l.workout!=='rest');
+  if(f==='weight')logs=logs.filter(l=>l.weight);
+  const el=document.getElementById('history-list');
+  if(!logs.length){
+    el.innerHTML='<div class="empty-state"><div class="icon">📝</div><p>ยังไม่มีการบันทึก<br>เริ่มบันทึกวันแรกได้เลย!</p></div>';return
+  }
+  el.innerHTML=logs.map((l,i)=>{
+    const me=l.mood?l.mood.split(' ')[0]:'';
+    const tags=[];
+    if(l.workout&&l.workout!=='rest')tags.push(`<span class="htag w">🏋️ ${l.workout.split(' — ')[1]||l.workout}</span>`);
+    if(l.weight)tags.push(`<span class="htag wt">⚖️ ${l.weight} กก.</span>`);
+    if(l.water)tags.push(`<span class="htag h2o">💧 ${l.water} แก้ว</span>`);
+    return`<div class="history-item" onclick="openModal(${i})">
+      <div class="history-header"><span class="history-date">${fmtDate(l.date)}</span><span style="font-size:17px">${me}</span></div>
+      <div class="history-tags">${tags.join('')||'<span style="font-size:13px;color:var(--text-d)">ไม่มีข้อมูล</span>'}</div>
+      ${l.note?`<div class="history-note">${l.note}</div>`:''}
+    </div>`
+  }).join('')
+}
+
+function openModal(i){
+  const l=allLogs[i];if(!l)return;
+  document.getElementById('modal-title').textContent=fmtDate(l.date);
+  const rows=[['ออกกำลังกาย',l.workout||'—'],['ความรู้สึก',l.mood||'—'],['อาหาร',l.food||'—'],['น้ำหนัก',l.weight?l.weight+' กก.':'—'],['น้ำดื่ม',l.water?l.water+' แก้ว':'—'],['แคลที่กิน',l.cal_eaten?l.cal_eaten+' kcal':'—'],['แคลที่เผา',l.cal_burned?l.cal_burned+' kcal':'—'],['โน้ต',l.note||'—']];
+  document.getElementById('modal-body').innerHTML=rows.map(([k,v])=>`<div class="mrow"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+
+function renderStats(){
+  loadLogs().then(()=>{
+    document.getElementById('stat-days').textContent=allLogs.length;
+    document.getElementById('stat-workouts').textContent=allLogs.filter(l=>l.workout&&l.workout!=='rest').length;
+    const ww=[...allLogs].filter(l=>l.weight).reverse();
+    if(ww.length){
+      document.getElementById('stat-start').textContent=ww[0].weight;
+      const diff=(parseFloat(ww[0].weight)-parseFloat(ww[ww.length-1].weight)).toFixed(1);
+      document.getElementById('stat-diff').textContent=diff>0?'-'+diff:diff;
+    }
+    const canvas=document.getElementById('weight-chart');
+    if(ww.length<2){canvas.style.display='none';document.getElementById('chart-empty').style.display='block'}
+    else{canvas.style.display='block';document.getElementById('chart-empty').style.display='none';drawChart(canvas,ww)}
+    renderStreakGrid();
+    document.getElementById('daily-tip').textContent=TIPS[new Date().getDate()%TIPS.length];
+  });
+}
+
+function renderStreakGrid(){
+  const logMap={};allLogs.forEach(l=>{logMap[l.date]=l});
+  const el=document.getElementById('streak-grid');el.innerHTML='';
+  const today=new Date();
+  for(let i=29;i>=0;i--){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const log=logMap[ds];
+    const div=document.createElement('div');div.className='streak-dot';
+    div.textContent=d.getDate();
+    if(log)div.classList.add(log.workout&&log.workout!=='rest'?'worked':'rested');
+    el.appendChild(div);
+  }
+}
+
+function updateStreak(){
+  const logMap={};allLogs.forEach(l=>{logMap[l.date]=l});
+  let streak=0;const today=new Date();
+  for(let i=0;i<365;i++){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    if(logMap[ds])streak++;else break;
+  }
+  document.getElementById('streak-num').textContent=streak;
+}
+
+function drawChart(canvas,data){
+  const dpr=window.devicePixelRatio||1;const W=canvas.offsetWidth||320;const H=130;
+  canvas.width=W*dpr;canvas.height=H*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const pad={top:18,right:14,bottom:22,left:36};const cw=W-pad.left-pad.right;const ch=H-pad.top-pad.bottom;
+  const vals=data.map(d=>parseFloat(d.weight));const minV=Math.min(...vals)-1;const maxV=Math.max(...vals)+1;const range=maxV-minV||1;
+  const xs=data.map((_,i)=>pad.left+(i/(data.length-1))*cw);
+  const ys=vals.map(v=>pad.top+ch-((v-minV)/range)*ch);
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  [0,.5,1].forEach(t=>{
+    const y=pad.top+t*ch;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cw,y);ctx.stroke();
+    ctx.fillStyle='rgba(136,132,170,.7)';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='right';
+    ctx.fillText((maxV-t*range).toFixed(1),pad.left-3,y+4);
+  });
+  const g=ctx.createLinearGradient(0,pad.top,0,pad.top+ch);g.addColorStop(0,'rgba(124,111,212,.35)');g.addColorStop(1,'rgba(124,111,212,0)');
+  ctx.beginPath();ctx.moveTo(xs[0],ys[0]);
+  for(let i=1;i<xs.length;i++){const mx=(xs[i-1]+xs[i])/2;ctx.bezierCurveTo(mx,ys[i-1],mx,ys[i],xs[i],ys[i])}
+  ctx.lineTo(xs[xs.length-1],pad.top+ch);ctx.lineTo(xs[0],pad.top+ch);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.moveTo(xs[0],ys[0]);
+  for(let i=1;i<xs.length;i++){const mx=(xs[i-1]+xs[i])/2;ctx.bezierCurveTo(mx,ys[i-1],mx,ys[i],xs[i],ys[i])}
+  ctx.strokeStyle='#a89ee8';ctx.lineWidth=2;ctx.stroke();
+  xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(x,ys[i],4,0,Math.PI*2);ctx.fillStyle='#7c6fd4';ctx.fill();ctx.strokeStyle='#0f0f1a';ctx.lineWidth=2;ctx.stroke()});
+  const si=[0,Math.floor(data.length/2),data.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+  ctx.fillStyle='rgba(136,132,170,.7)';ctx.font='10px -apple-system,sans-serif';ctx.textAlign='center';
+  si.forEach(i=>{const d=new Date(data[i].date+'T00:00:00');ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`,xs[i],H-4)});
+}
+
+// Init
+const DN=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+const MN=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const now=new Date();
+document.getElementById('today-badge').textContent=DN[now.getDay()]+' '+now.getDate()+' '+MN[now.getMonth()];
+allLogs=cacheGet();
+updateStreak();
+</script>
+</body>
+</html>
